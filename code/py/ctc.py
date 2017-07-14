@@ -16,8 +16,8 @@ from sklearn.cross_validation import StratifiedKFold, KFold, train_test_split
 
 import keras.backend as K
 from keras.models import Sequential, Model, model_from_json
-from keras.layers.core import Dense, Activation, Merge, Dropout
-from keras.layers import LSTM, Input, Lambda
+from keras.layers.core import Dense, Activation, Dropout
+from keras.layers import LSTM, Input, Lambda, Merge
 from keras.layers.wrappers import TimeDistributed
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import SGD, Adam, RMSprop
@@ -25,20 +25,20 @@ from keras.optimizers import SGD, Adam, RMSprop
 sys.path.append("../")
 from utilities.utils import *
 
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-get_ipython().magic(u'matplotlib inline')
+#import matplotlib
+#import matplotlib.pyplot as plt
+#import matplotlib.ticker as ticker
+#get_ipython().magic(u'matplotlib inline')
 
-from IPython.display import clear_output
+#from IPython.display import clear_output
 
 
 # In[2]:
 
-batch_size = 64
+batch_size = 16
 nb_feat = 34
 nb_class = 4
-nb_epoch = 2
+nb_epoch = 80
 
 optimizer = 'Adadelta'
 
@@ -51,7 +51,7 @@ print(params)
 
 # In[4]:
 
-params.path_to_data = "/root/shared/Dropbox/study/Skoltech/voice/data/initial/IEMOCAP_full_release/"
+#params.path_to_data = "/root/shared/Dropbox/study/Skoltech/voice/data/initial/IEMOCAP_full_release/"
 
 
 # # Calculating features
@@ -63,7 +63,7 @@ data = read_iemocap_data(params=params)
 
 # In[6]:
 
-get_features(data, params)
+#get_features(data, params)
 
 
 # # Model definition
@@ -122,12 +122,6 @@ def build_model(nb_feat, nb_class, optimizer='Adadelta'):
     return model, test_func
 
 
-# # Model building
-
-# In[9]:
-
-model, test_func = build_model(nb_feat=nb_feat, nb_class=nb_class, optimizer=optimizer)
-model.summary()
 
 
 # # Data preparation
@@ -138,6 +132,7 @@ X, y, valid_idxs = get_sample(ids=None, take_all=True)
 y = np.argmax(to_categorical(y, params), axis=1)
 y = np.reshape(y, (y.shape[0], 1))
 
+print X.shape, X[0].shape, y.shape
 
 # In[11]:
 
@@ -155,6 +150,8 @@ index_to_retain = np.sum(X_mask, axis=1, dtype=np.int32) > 5
 X, X_mask = X[index_to_retain], X_mask[index_to_retain]
 y, y_mask = y[index_to_retain], y_mask[index_to_retain]
 
+print X.shape, y.shape, X_mask.shape, y_mask.shape
+
 
 # In[14]:
 
@@ -164,10 +161,16 @@ X_train_mask, X_test_mask = X_mask[idxs_train], X_mask[idxs_test]
 y_train, y_test = y[idxs_train], y[idxs_test]
 y_train_mask, y_test_mask = y_mask[idxs_train], y_mask[idxs_test]
 
-
 # # Training
 
 # In[15]:
+# # Model buildin
+
+# In[9]:
+
+model, test_func = build_model(nb_feat=nb_feat, nb_class=nb_class, optimizer=optimizer)
+model.summary()
+
 
 sess = tf.Session()
 
@@ -220,6 +223,8 @@ for epoch in range(nb_epoch):
     preds = test_func([inputs_train["the_input"]])[0]
     decode_function = K.ctc_decode(preds[:,2:,:], inputs_train["input_length"]-2, greedy=False, top_paths=1)
     labellings = decode_function[0][0].eval(session=sess)
+
+    #    print labellings, len(labellings), len(labellings[0]), shape(labellings)
     if labellings.shape[1] == 0:
         ua_train[epoch] = 0.0
         wa_train[epoch] = 0.0

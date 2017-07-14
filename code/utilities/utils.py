@@ -20,7 +20,7 @@ class Constants:
     def __init__(self):
         real_path = os.path.dirname(os.path.realpath(__file__))
         self.available_emotions = np.array(['ang', 'exc', 'neu', 'sad'])
-        self.path_to_data = real_path + "/../../data/sessions/"
+        self.path_to_data = "/home/sam/data/IEMOCAP_full_release/"
         self.path_to_features = real_path + "/../../data/features/"
         self.sessions = ['Session1', 'Session2', 'Session3', 'Session4', 'Session5']
         self.conf_matrix_prefix = 'iemocap'

@@ -22,7 +22,8 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 
 from keras.models import Sequential, Model
-from keras.layers.core import Dense, Activation, Merge
+from keras.layers.core import Dense, Activation
+from keras.layers import Merge
 from keras.layers import LSTM, Input
 from keras.layers.wrappers import TimeDistributed
 from keras.optimizers import SGD, Adam, RMSprop
@@ -33,9 +34,9 @@ from utilities.utils import *
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-get_ipython().magic(u'matplotlib inline')
+#get_ipython().magic(u'matplotlib inline')
 
-from IPython.display import clear_output
+#from IPython.display import clear_output
 
 
 # In[ ]:
@@ -63,7 +64,7 @@ data = read_iemocap_data(params=params)
 
 # In[ ]:
 
-get_features(data, params)
+#get_features(data, params)
 
 
 # # Model definition
@@ -120,12 +121,6 @@ def build_blstm(nb_feat, nb_class, optimizer='Adadelta'):
     return model
 
 
-# # Model building
-
-# In[ ]:
-
-model = build_model()
-model.summary()
 
 
 # # Data preparation
@@ -136,11 +131,15 @@ X, y, valid_idxs = get_sample(ids=None, take_all=True)
 y = to_categorical(y, params)
 idxs_train, idxs_test = train_test_split(range(X.shape[0]), test_size=0.2)
 
+print X.shape, y.shape, X[0].shape, X[10].shape
 
+nb_feat = 78
+nb_classes = y.shape[1]
 # In[ ]:
 
-X, _ = pad_sequence_into_array(X, maxlen=78)
+X, _ = pad_sequence_into_array(X, maxlen=32)
 
+print X.shape
 
 # In[ ]:
 
@@ -151,6 +150,17 @@ y_train, y_test = y[idxs_train], y[idxs_test]
 # # Training
 
 # In[ ]:
+
+# # Model building
+
+# In[ ]:
+
+def build_model():
+    return build_simple_lstm(34, nb_classes)
+
+model = build_model()
+model.summary()
+
 
 hist = model.fit(X_train, y_train, 
                  batch_size=batch_size, nb_epoch=nb_epoch, verbose=1, 
